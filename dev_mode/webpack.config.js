@@ -160,7 +160,8 @@ module.exports = [
         {
           test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
           use: 'url-loader?limit=10000&mimetype=image/svg+xml'
-        }
+        },
+        { test: /\.wasm$/, loader: 'file-loader', type: 'javascript/auto' }
       ]
     },
     watchOptions: {

@@ -24,7 +24,8 @@ module.exports = {
       {
         test: /\.(png|jpg|gif|ttf|woff|woff2|eot)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         use: [{ loader: 'url-loader', options: { limit: 10000 } }]
-      }
+      },
+      { test: /\.wasm$/, loader: 'file-loader', type: 'javascript/auto' }
     ]
   }
 };
