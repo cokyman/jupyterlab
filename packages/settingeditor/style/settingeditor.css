@@ -72,6 +72,8 @@
   top: 1px;
   left: 0;
   right: 0;
+  display:flex;
+  flex-direction: row;
 }
 
 #setting-editor .jp-PluginList-switcher button {
@@ -79,10 +81,10 @@
   color: var(--jp-ui-font-color2);
   border: 0;
   border-bottom: 1px solid var(--jp-ui-font-color3);
+  height: var(--jp-private-settingeditor-switcher-height);
   margin: 0;
   padding: 0;
-  height: var(--jp-private-settingeditor-switcher-height);
-  width: 50%;
+  flex: 1;
 }
 
 #setting-editor .jp-PluginList-switcher button:first-child {

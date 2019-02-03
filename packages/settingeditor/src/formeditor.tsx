@@ -17,6 +17,10 @@ import * as ReactDom from 'react-dom';
 
 import Form from 'react-jsonschema-form';
 
+import {DefaultObjectFieldTemplate} from './templates';
+
+import '../style/formeditor.css';
+
 /**
  * A class name added to all form editors.
  */
@@ -71,7 +75,7 @@ export class FormEditor extends Widget {
    * Tests whether the settings have been modified and need saving.
    */
   get isDirty(): boolean {
-    return false;
+    return this._isDirty;
   }
 
   /**
@@ -140,9 +144,9 @@ export class FormEditor extends Widget {
     const settings = this._settings;
 
     return settings
-      .save('')
+      .save(JSON.stringify(this._formData, null, 2))
       .then(() => {
-        /* no op */
+        console.log('saved!');
       })
       .catch(reason => {
         this._onSaveError(reason);
@@ -163,10 +167,18 @@ export class FormEditor extends Widget {
     if (!this._settings) {
       return;
     }
+
     ReactDom.render(
       <Form
         schema={this._settings.schema}
         formData={this.settings.composite}
+        liveValidate={true}
+        ObjectFieldTemplate={DefaultObjectFieldTemplate}
+        onSubmit={(evt: any) => this.save()}
+        onChange={(evt: any) => {
+          this._formData = evt.formData;
+          this._isDirty = true;
+        }}
       />,
       this.node
     );
@@ -186,6 +198,8 @@ export class FormEditor extends Widget {
   private _commandsChanged = new Signal<this, string[]>(this);
   private _onSaveError: (reason: any) => void;
   private _settings: ISettingRegistry.ISettings | null = null;
+  private _formData: any;
+  private _isDirty = false;
 }
 
 /**

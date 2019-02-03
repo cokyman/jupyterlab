@@ -217,15 +217,24 @@
           "type": "boolean"
         },
         "fontFamily": {
-          "type": ["string", "null"]
+          "oneOf": [
+            {"type": "string"},
+            {"type": "null", "title": "Default"}
+          ]
         },
         "fontSize": {
-          "type": ["integer", "null"],
+          "oneOf": [
+            {"type": "integer"},
+            {"type": "null", "title": "Default"}
+          ],
           "minimum": 1,
           "maximum": 100
         },
         "lineHeight": {
-          "type": ["number", "null"]
+          "oneOf": [
+            {"type": "number"},
+            {"type": "null", "title": "Default"}
+          ]
         },
         "lineNumbers": {
           "type": "boolean"

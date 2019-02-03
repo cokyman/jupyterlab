@@ -12,7 +12,8 @@
     "lib/*.d.ts",
     "lib/*.js.map",
     "lib/*.js",
-    "style/*.css"
+    "style/*.css",
+    "schema/*.json"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -42,7 +43,7 @@
     "@phosphor/widgets": "^1.6.0",
     "react": "~16.4.2",
     "react-dom": "~16.4.2",
-    "react-jsonschema-form": "^1.2.0"
+    "react-jsonschema-form": "file:../../../react-jsonschema-form"
   },
   "devDependencies": {
     "@types/react": "~16.4.13",
