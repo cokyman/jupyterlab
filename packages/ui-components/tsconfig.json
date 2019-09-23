@@ -2,10 +2,15 @@
   "extends": "../../tsconfigbase",
   "compilerOptions": {
     "outDir": "lib",
-    "types": ["webpack-env", "node"],
+    "types": [
+      "webpack-env",
+      "node"
+    ],
     "rootDir": "src"
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "references": [
     {
       "path": "../coreutils"

@@ -1,7 +1,12 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-import { Dialog, showDialog, showErrorMessage } from '@jupyterlab/apputils';
+import {
+  Dialog,
+  showDialog,
+  showErrorMessage,
+  BodyForm
+} from '@jupyterlab/apputils';
 
 import { PathExt } from '@jupyterlab/coreutils';
 
@@ -9,19 +14,12 @@ import { Contents } from '@jupyterlab/services';
 
 import { JSONObject } from '@phosphor/coreutils';
 
-import { Widget } from '@phosphor/widgets';
-
 import { IDocumentManager } from './';
 
 /**
  * The class name added to file dialogs.
  */
 const FILE_DIALOG_CLASS = 'jp-FileDialog';
-
-/**
- * The class name added for the new name label in the rename dialog
- */
-const RENAME_NEWNAME_TITLE_CLASS = 'jp-new-name-title';
 
 /**
  * A stripped-down interface for a file container.
@@ -37,6 +35,11 @@ export interface IFileContainer extends JSONObject {
   path: string;
 }
 
+interface IFormData extends JSONObject {
+  oldPath: string;
+  newPath: string;
+}
+
 /**
  * Rename a file with a dialog.
  */
@@ -44,20 +47,26 @@ export function renameDialog(
   manager: IDocumentManager,
   oldPath: string
 ): Promise<Contents.IModel | null> {
+  const form = new BodyForm<IFormData>();
+  form.model.schema = Private.makeSchema(oldPath);
+  form.model.className = FILE_DIALOG_CLASS;
+  form.model.uiSchema = Private.makeUiSchema();
+
   return showDialog({
     title: 'Rename File',
-    body: new RenameHandler(oldPath),
-    focusNodeSelector: 'input',
+    body: form,
+    focusNodeSelector: 'input:not([readonly])',
     buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Rename' })]
   }).then(result => {
     if (!result.value) {
       return;
     }
-    if (!isValidFileName(result.value)) {
+    const { errors, formData } = result.value;
+    if (errors.length) {
       void showErrorMessage(
         'Rename Error',
         Error(
-          `"${result.value}" is not a valid name for a file. ` +
+          `"${formData.newPath}" is not a valid name for a file. ` +
             `Names must have nonzero length, ` +
             `and cannot include "/", "\\", or ":"`
         )
@@ -65,7 +74,7 @@ export function renameDialog(
       return null;
     }
     let basePath = PathExt.dirname(oldPath);
-    let newPath = PathExt.join(basePath, result.value);
+    let newPath = PathExt.join(basePath, formData.newPath);
     return renameFile(manager, oldPath, newPath);
   });
 }
@@ -116,58 +125,43 @@ export function isValidFileName(name: string): boolean {
 }
 
 /**
- * A widget used to rename a file.
- */
-class RenameHandler extends Widget {
-  /**
-   * Construct a new "rename" dialog.
-   */
-  constructor(oldPath: string) {
-    super({ node: Private.createRenameNode(oldPath) });
-    this.addClass(FILE_DIALOG_CLASS);
-    let ext = PathExt.extname(oldPath);
-    let value = (this.inputNode.value = PathExt.basename(oldPath));
-    this.inputNode.setSelectionRange(0, value.length - ext.length);
-  }
-
-  /**
-   * Get the input text node.
-   */
-  get inputNode(): HTMLInputElement {
-    return this.node.getElementsByTagName('input')[0] as HTMLInputElement;
-  }
-
-  /**
-   * Get the value of the widget.
-   */
-  getValue(): string {
-    return this.inputNode.value;
-  }
-}
-
-/**
  * A namespace for private data.
  */
 namespace Private {
   /**
-   * Create the node for a rename handler.
+   * Create the JSON Schema for file renaming
    */
-  export function createRenameNode(oldPath: string): HTMLElement {
-    let body = document.createElement('div');
-    let existingLabel = document.createElement('label');
-    existingLabel.textContent = 'File Path';
-    let existingPath = document.createElement('span');
-    existingPath.textContent = oldPath;
+  export function makeSchema(oldPath: string) {
+    return {
+      type: 'object',
+      required: ['newPath'],
+      properties: {
+        oldPath: {
+          type: 'string',
+          title: 'File Path',
+          default: oldPath,
+          readOnly: true
+        },
+        newPath: {
+          type: 'string',
+          title: 'New Name',
+          // can't quite reproduce basename selection:
+          // https://github.com/rjsf-team/react-jsonschema-form/issues/744
+          default: PathExt.basename(oldPath),
+          pattern: '[^\\/\\\\:]+'
+        }
+      }
+    };
+  }
 
-    let nameTitle = document.createElement('label');
-    nameTitle.textContent = 'New Name';
-    nameTitle.className = RENAME_NEWNAME_TITLE_CLASS;
-    let name = document.createElement('input');
-
-    body.appendChild(existingLabel);
-    body.appendChild(existingPath);
-    body.appendChild(nameTitle);
-    body.appendChild(name);
-    return body;
+  /**
+   * Create the UI schema for file renaming
+   */
+  export function makeUiSchema() {
+    return {
+      newPath: {
+        'ui:autofocus': true
+      }
+    };
   }
 }
