@@ -1,9 +1,9 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 
-// adapted from from
-// https://medium.com/front-end-weekly/loading-components-asynchronously-in-react-app-with-an-hoc-61ca27c4fda7
-// https://gist.github.com/alecmerdler/1bbda1c26c05e7b64711e0ef2899c347
+// adapted from:
+// - https://medium.com/front-end-weekly/loading-components-asynchronously-in-react-app-with-an-hoc-61ca27c4fda7
+// - https://gist.github.com/alecmerdler/1bbda1c26c05e7b64711e0ef2899c347
 
 import React from 'react';
 
@@ -17,24 +17,28 @@ export function asyncComponent<T extends asyncComponent.TImportable>(
   onError: asyncComponent.IErrorHandler = console.error
 ) {
   let COMPONENT: T;
+  let PROMISE: Promise<T>;
 
   return class extends React.Component {
     state: asyncComponent.IState = {
       __async_component: null
     };
 
+    /**
+     * React-specific overload
+     */
     componentDidMount() {
       if (COMPONENT != null) {
         this.componentWasCached();
         return;
       }
 
-      doImport()
-        .then(component => {
-          COMPONENT = component;
-          this.componentWasCached();
-        })
-        .catch(onError);
+      if (PROMISE == null) {
+        PROMISE = doImport().then(component => (COMPONENT = component));
+      }
+
+      // the error may propagate multiple times
+      PROMISE.then(this.componentWasCached).catch(onError);
     }
 
     /**
@@ -48,15 +52,15 @@ export function asyncComponent<T extends asyncComponent.TImportable>(
      * Render the component (or a spinner, while loading)
      */
     render() {
-      const _Component = this.state.__async_component;
-      if (_Component == null) {
+      const Component = this.state.__async_component;
+      if (Component == null) {
         return (
           <div className="jp-Spinner">
             <div className="jp-SpinnerContent"></div>
           </div>
         );
       } else {
-        return <_Component {...this.props}>{this.props.children}</_Component>;
+        return <Component {...this.props}>{this.props.children}</Component>;
       }
     }
   };
