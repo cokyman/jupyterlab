@@ -5,7 +5,7 @@ import {
   Dialog,
   showDialog,
   showErrorMessage,
-  BodyForm
+  SchemaForm
 } from '@jupyterlab/apputils';
 
 import { PathExt } from '@jupyterlab/coreutils';
@@ -47,10 +47,12 @@ export function renameDialog(
   manager: IDocumentManager,
   oldPath: string
 ): Promise<Contents.IModel | null> {
-  const form = new BodyForm<IFormData>();
-  form.model.schema = Private.makeSchema(oldPath);
-  form.model.className = FILE_DIALOG_CLASS;
-  form.model.uiSchema = Private.makeUiSchema();
+  const form = new SchemaForm<IFormData>(Private.makeSchema(oldPath), {
+    className: FILE_DIALOG_CLASS,
+    uiSchema: Private.makeUiSchema(),
+    liveValidate: true,
+    showErrorList: false
+  });
 
   return showDialog({
     title: 'Rename File',
