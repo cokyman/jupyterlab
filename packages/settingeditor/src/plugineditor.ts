@@ -23,6 +23,8 @@ import { Widget, StackedLayout } from '@phosphor/widgets';
 
 import { RawEditor } from './raweditor';
 
+import { FormEditor } from './formeditor';
+
 import { SettingEditor } from './settingeditor';
 
 /**
@@ -61,7 +63,18 @@ export class PluginEditor extends Widget {
     });
     this._rawEditor.handleMoved.connect(this._onStateChanged, this);
 
-    layout.addWidget(this._rawEditor);
+    // layout.addWidget(this._rawEditor);
+
+    this.form = this._formEditor = new FormEditor({
+      commands,
+      editorFactory,
+      onSaveError,
+      registry,
+      rendermime
+    });
+    this._formEditor.handleMoved.connect(this._onStateChanged, this);
+
+    layout.addWidget(this._formEditor);
   }
 
   /**
@@ -70,10 +83,15 @@ export class PluginEditor extends Widget {
   readonly raw: RawEditor;
 
   /**
+   * The plugin editor's form editor.
+   */
+  readonly form: FormEditor;
+
+  /**
    * Tests whether the settings have been modified and need saving.
    */
   get isDirty(): boolean {
-    return this._rawEditor.isDirty;
+    return this._rawEditor.isDirty || this._formEditor.isDirty;
   }
 
   /**
@@ -88,8 +106,9 @@ export class PluginEditor extends Widget {
     }
 
     const raw = this._rawEditor;
+    const form = this._formEditor;
 
-    this._settings = raw.settings = settings;
+    this._settings = raw.settings = form.settings = settings;
     this.update();
   }
 
@@ -147,6 +166,7 @@ export class PluginEditor extends Widget {
 
     super.dispose();
     this._rawEditor.dispose();
+    this._formEditor.dispose();
   }
 
   /**
@@ -180,6 +200,7 @@ export class PluginEditor extends Widget {
   }
 
   private _rawEditor: RawEditor;
+  private _formEditor: FormEditor;
   private _settings: ISettingRegistry.ISettings | null = null;
   private _stateChanged = new Signal<this, void>(this);
 }

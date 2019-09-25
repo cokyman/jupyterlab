@@ -30,7 +30,7 @@ export class SchemaForm<T extends JSONValue> extends VDomRenderer<
   /**
    * Construct a new Model
    */
-  constructor(schema: JSONObject, props?: Partial<rjsf.FormProps<T>>) {
+  constructor(schema: JSONObject, props: Partial<rjsf.FormProps<T>> = {}) {
     super();
     this._idPrefix = `${SCHEMA_FORM_ID_PREFIX}-${Private.nextId()}`;
     this.model = new SchemaForm.Model<T>(schema, props);
