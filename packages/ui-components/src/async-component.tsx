@@ -38,7 +38,7 @@ export function asyncComponent<T extends asyncComponent.TImportable>(
       }
 
       // the error may propagate multiple times
-      PROMISE.then(this.componentWasCached).catch(onError);
+      PROMISE.then(() => this.componentWasCached()).catch(onError);
     }
 
     /**
